@@ -10,6 +10,8 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>();
   const [data, setData] = useState<firebase.firestore.QueryDocumentSnapshot[]>();
 
+  //console.log(process.env.REACT_APP_API_KEY);
+  
   signInAnonymously(setError);
   //writeData('test', { name: 'brijesh kumar' }, setError);
   readData('test', setData, setError);
