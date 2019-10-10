@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import firebase from 'firebase';
 import { signInAnonymously, writeData, readData } from './api';
-import { Container, Message } from 'semantic-ui-react';
+import { Container, Message, List } from 'semantic-ui-react';
 
 const App: React.FC = () => {
 
@@ -11,7 +11,7 @@ const App: React.FC = () => {
   const [data, setData] = useState<firebase.firestore.QueryDocumentSnapshot[]>();
 
   signInAnonymously(setError);
-  writeData('test', { name: 'brijesh kumar' }, setError);
+  //writeData('test', { name: 'brijesh kumar' }, setError);
   readData('test', setData, setError);
   //console.log(app.auth().currentUser);
 
@@ -19,7 +19,13 @@ const App: React.FC = () => {
 
   return (
     <Container>
-      <Message />
+      <Message
+        className={error ? 'error' : 'success'}
+        header={error ? 'Ops' : 'Welcome'}
+        content={error} />
+      <List>
+        {data ? data.map(item => <List.Item key={item.id}>{JSON.stringify(item.data())}</List.Item>) : null}
+      </List>
     </Container>
   );
 }
