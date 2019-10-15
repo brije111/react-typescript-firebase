@@ -2,33 +2,35 @@ import React, { useState } from 'react';
 import firebase from 'firebase';
 import app from './api/firebase';
 import { signInAnonymously, writeData, readData, signInWithGoogle } from './api';
-import { Container, Message, List, Segment, Dimmer, Loader, Button } from 'semantic-ui-react';
+import { Container, Message, List, Segment, Dimmer, Loader, Button, Grid } from 'semantic-ui-react';
+import UserList from './components/UserList';
+import ChatWindow from './components/ChatWindow';
+
+export interface CustomUser {
+  uid: string;
+  name: string | null;
+  imageUrl: string | null;
+  email: string | null;
+}
 
 export interface DataResult {
   error: string;
-  data: Array<firebase.firestore.QueryDocumentSnapshot>;
+  data?: Array<firebase.firestore.QueryDocumentSnapshot>;
   loading: boolean;
-  user: firebase.User | null;
+  user?: CustomUser;
+  chat?: firebase.firestore.DocumentData | undefined;
 }
 
 const App: React.FC = () => {
 
-  const user = app.auth().currentUser;
-
-  const initialState = {
+  const initialState: DataResult = {
     error: '',
-    data: new Array<firebase.firestore.QueryDocumentSnapshot>(),
     loading: false,
-    user: user
   }
 
   //console.log(firebase.auth().currentUser);
   const [dataResult, setDataResult] = useState(initialState);
-
-  //signInAnonymously(setError);
-  //signInWithGoogle(dataResult, setDataResult);
-  //writeData('test', { name: 'brijesh kumar' }, setError);
-  readData('test', dataResult, setDataResult);
+  const [selectedUid, setSelectedUid] = useState('');
 
   const renderLogin = () => {
     return <Button primary
@@ -36,15 +38,24 @@ const App: React.FC = () => {
   }
 
   const renderList = () => {
-    return <Segment>
-      <Message
-        className={dataResult.error ? 'error' : 'success'}
-        header={dataResult.error ? 'Ops' : 'Welcome'}
-        content={dataResult.error} />
-      <List>
-        {dataResult.data ? dataResult.data.map(item => <List.Item key={item.id}>{JSON.stringify(item.data())}</List.Item>) : null}
-      </List>
-    </Segment>;
+    return <Grid divided padded>
+      <Grid.Row>
+        <Grid.Column width={16}>
+          <Message
+            className={dataResult.error ? 'error' : 'success'}
+            header={dataResult.error ? `Ops: ${dataResult.error}` : 'Welcome'}
+            content={dataResult.error} />
+        </Grid.Column>
+      </Grid.Row>
+      <Grid.Row>
+        <Grid.Column width={4}>
+          {dataResult.data ? <UserList itemClickListener={setSelectedUid} data={dataResult.data} /> : null}
+        </Grid.Column>
+        <Grid.Column width={12}>
+          {selectedUid ? <ChatWindow data={selectedUid} /> : null}
+        </Grid.Column>
+      </Grid.Row>
+    </Grid>;
   }
 
   return (
@@ -55,9 +66,7 @@ const App: React.FC = () => {
           <Loader>Loading</Loader>
         </Dimmer>
         {dataResult.user ? renderList() : renderLogin()}
-
       </Segment>
-
     </Container>
   );
 }
