@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import firebase from 'firebase';
 import app from './api/firebase';
-import { signInAnonymously, writeData, readData, signInWithGoogle } from './api';
+import { signInAnonymously, writeData, readData, signInWithGoogle, authStateChangeListener } from './api';
 import { Container, Message, List, Segment, Dimmer, Loader, Button } from 'semantic-ui-react';
 
 export interface DataResult {
@@ -28,7 +28,11 @@ const App: React.FC = () => {
   //signInAnonymously(setError);
   //signInWithGoogle(dataResult, setDataResult);
   //writeData('test', { name: 'brijesh kumar' }, setError);
-  readData('test', dataResult, setDataResult);
+  //readData('test', dataResult, setDataResult);
+
+  useEffect(() => {
+    authStateChangeListener(dataResult, setDataResult);
+  })
 
   const renderLogin = () => {
     return <Button primary

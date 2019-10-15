@@ -82,3 +82,16 @@ export const readData = (collectionName: string,
         setDataResult({ ...dataResult });
     });
 }
+
+export const authStateChangeListener = (dataResult: DataResult,
+    setDataResult: React.Dispatch<React.SetStateAction<DataResult>>): void => {
+    console.log('outside auth stw change');
+    dataResult.loading = true;
+    setDataResult({ ...dataResult });
+    app.auth().onAuthStateChanged((user) => {
+        console.log('got user');
+        dataResult.loading = false;
+        dataResult.user = user;
+        setDataResult({ ...dataResult });
+    })
+}
