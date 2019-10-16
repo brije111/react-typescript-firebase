@@ -1,30 +1,49 @@
-import React, { useState } from 'react';
-import { Segment, Grid, Input, Button, Form } from 'semantic-ui-react';
-import { listenForChatChange } from '../api';
-export interface ChatDataResult {
-    error?: string;
-    loading: boolean;
-    data?: firebase.firestore.DocumentData | undefined;
-}
+import React, { useState, useEffect } from 'react';
+import { Segment, Form, List } from 'semantic-ui-react';
+import { listenForChatChange, writeChatData } from '../api';
+import firebase from 'firebase';
+import ChatListItem from './ChatListItem';
+import { ChatDataResult, Chat } from './interface';
 
 interface ChatWindowProps {
     data: string;
+    id: string | undefined;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ data }) => {
-    const initialState = {
+const ChatWindow: React.FC<ChatWindowProps> = ({ data, id }) => {
+    const initialState: ChatDataResult = {
         loading: false
     }
     const [chatData, setChatData] = useState(initialState);
     const [input, setInput] = useState('');
 
+    useEffect(() => {
+        const unsub = listenForChatChange(data, chatData, setChatData);
+        return () => {
+            unsub();
+        };
+    }, [data]); // Only re-subscribe if data changes
+
+    const onSendButtonClicked = () => {
+        const chat: Chat = {
+            message: input,
+            uid: id,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }
+        writeChatData(id, chat);
+    }
+
     //listenForChatChange(data, chatData, setChatData);
 
     return <Segment>
+        <List>
+            {chatData.data?.map((item)=><ChatListItem data={item} />)}
+        </List>
         <Form>
             <Form.Group>
-                <Form.Input label='Message' placeholder='Message' width={14} />
-                <Form.Button label='Send' width={2} />
+                <Form.Input onChange={(e) => setInput(e.target.value)}
+                    value={input} placeholder='Type Message Here...' width={14} />
+                <Form.Button onClick={onSendButtonClicked} width={2} />
             </Form.Group>
         </Form>
     </Segment>
