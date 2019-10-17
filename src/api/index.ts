@@ -1,6 +1,7 @@
 import app from './firebase';
 import firebase from 'firebase';
-import { DataResult } from '../App';
+import { DataResult, CustomUser } from '../App';
+import { ChatDataResult } from '../components/ChatWindow';
 
 export interface TestData {
     name: string;
@@ -27,16 +28,23 @@ export const signInWithGoogle = (dataResult: DataResult,
     setDataResult({ ...dataResult });
     const provider = new firebase.auth.GoogleAuthProvider();
     app.auth().signInWithPopup(provider).then((result) => {
+        console.log('google sign in success');
         if (result.credential) {
             // This gives you a Google Access Token. You can use it to access the Google API.
             const token = result.credential.providerId;
         }
         // The signed-in user info.
         const user = result.user;
-        dataResult.loading = false;
-        dataResult.user = user;
-        setDataResult({ ...dataResult });
+        if (user)
+            writeUser(user, dataResult, setDataResult);
+        else {
+            dataResult.loading = false;
+            setDataResult({ ...dataResult });
+        }
+
     }).catch(function (error) {
+        console.log('google sign in fail');
+
         // Handle Errors here.
         const errorCode = error.code;
         const errorMessage = error.message;
@@ -66,15 +74,59 @@ export const writeData = (collectionName: string, data: TestData, dataResult: Da
     });
 }
 
-export const readData = (collectionName: string,
+const writeUser = (user: firebase.User, dataResult: DataResult,
+    setDataResult: React.Dispatch<React.SetStateAction<DataResult>>) => {
+    const customUser: CustomUser = {
+        uid: user.uid,
+        name: user.displayName,
+        imageUrl: user.photoURL,
+        email: user.email
+    }
+
+    //check if user already exist
+    app.firestore().collection('users').where('uid', '==', user.uid).get().then(value => {
+        console.log('write user level 1 success');
+
+        if (value.empty) {
+
+            //there is no record of this user, let's write it
+            app.firestore().collection('users').add(customUser).then(() => {
+                console.log('write user level 2 success');
+
+                //dataResult.loading = false;
+                dataResult.user = customUser;
+                setDataResult({ ...dataResult });
+                getUsers(dataResult, setDataResult);
+            }).catch(error => {
+                console.log('write user level 2 fail');
+
+                dataResult.loading = false;
+                dataResult.error = error;
+                setDataResult({ ...dataResult });
+            })
+        } else {//else, record already exist
+            console.log('write user level 1 success');
+            //dataResult.loading = false;
+            dataResult.user = customUser;
+            setDataResult({ ...dataResult });
+            getUsers(dataResult, setDataResult);
+        }
+    }).catch(error => {
+        dataResult.loading = false;
+        dataResult.error = error;
+        setDataResult({ ...dataResult });
+    })
+}
+
+export const readData = (collectionName: string, uid: string,
     dataResult: DataResult,
     setDataResult: React.Dispatch<React.SetStateAction<DataResult>>): void => {
 
-    //dataResult.loading = true;
-    //setDataResult({ ...dataResult });
-    app.firestore().collection(collectionName).get().then((data) => {
+    dataResult.loading = true;
+    setDataResult({ ...dataResult });
+    app.firestore().collection(collectionName).doc(uid).get().then((data) => {
         dataResult.loading = false;
-        dataResult.data = data.docs;
+        dataResult.chat = data.data;
         setDataResult({ ...dataResult });
     }).catch(error => {
         dataResult.loading = false;
@@ -83,15 +135,40 @@ export const readData = (collectionName: string,
     });
 }
 
-export const authStateChangeListener = (dataResult: DataResult,
+export const getUsers = (dataResult: DataResult,
     setDataResult: React.Dispatch<React.SetStateAction<DataResult>>): void => {
-    console.log('outside auth stw change');
+
+    // dataResult.loading = true;
+    // setDataResult({ ...dataResult });
+    console.log('get users');
+    
+    app.firestore().collection('users').get().then((data) => {
+        console.log('get users success');
+        
+        dataResult.loading = false;
+        dataResult.data = data.docs;
+        setDataResult({ ...dataResult });
+    }).catch(error => {
+        console.log('get users fail');
+        
+        dataResult.loading = false;
+        dataResult.error = error;
+        setDataResult({ ...dataResult });
+    });
+}
+
+export const listenForChatChange = (uid: string, dataResult: ChatDataResult,
+    setDataResult: React.Dispatch<React.SetStateAction<ChatDataResult>>): void => {
+
     dataResult.loading = true;
     setDataResult({ ...dataResult });
-    app.auth().onAuthStateChanged((user) => {
-        console.log('got user');
+    app.firestore().collection('chat').doc(uid).onSnapshot(dataSnapshot=>{
         dataResult.loading = false;
-        dataResult.user = user;
+        dataResult.data = dataSnapshot.data;
         setDataResult({ ...dataResult });
-    })
+    }, err=>{
+        dataResult.loading = false;
+        dataResult.error = err.message;
+        setDataResult({ ...dataResult });
+    });
 }
