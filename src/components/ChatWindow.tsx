@@ -1,30 +1,52 @@
-import React, { useState } from 'react';
-import { Segment, Grid, Input, Button, Form } from 'semantic-ui-react';
-import { listenForChatChange } from '../api';
-export interface ChatDataResult {
-    error?: string;
-    loading: boolean;
-    data?: firebase.firestore.DocumentData | undefined;
-}
+import React, { useState, useEffect } from 'react';
+import { Segment, Form, List } from 'semantic-ui-react';
+import { listenForChatChange, writeChatData } from '../api';
+import firebase from 'firebase';
+import ChatListItem from './ChatListItem';
+import { ChatDataResult, Chat } from './interface';
 
 interface ChatWindowProps {
     data: string;
+    uid: string ;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ data }) => {
-    const initialState = {
-        loading: false
+const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
+    const initialState: ChatDataResult = {
+        loading: false,
+        data:[]
     }
     const [chatData, setChatData] = useState(initialState);
     const [input, setInput] = useState('');
 
+    useEffect(() => {
+        const unsub = listenForChatChange(uid, data, chatData, setChatData);
+        return () => {
+            unsub();
+        };
+    }, [data]); // Only re-subscribe if data changes
+
+    const onSendButtonClicked = () => {
+        const chat: Chat = {
+            message: input,
+            senderId: uid,
+            receiverId:data,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }
+        writeChatData(chat);
+        setInput('');
+    }
+
     //listenForChatChange(data, chatData, setChatData);
 
     return <Segment>
+        <List>
+            {chatData.data.map((item)=><ChatListItem key={item.id} uid={uid} data={item} />)}
+        </List>
         <Form>
             <Form.Group>
-                <Form.Input value={input} onChange={(e)=>setInput(e.target.value)} placeholder='Type Message Here...' width={14} />
-                <Form.Button width={2}>Send</Form.Button>
+                <Form.Input onChange={(e) => setInput(e.target.value)}
+                    value={input} placeholder='Type Message Here...' width={14} />
+                <Form.Button primary onClick={onSendButtonClicked} width={2} >Send</Form.Button>
             </Form.Group>
         </Form>
     </Segment>
