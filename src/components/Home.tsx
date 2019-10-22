@@ -49,12 +49,10 @@ const Home: React.FC = () => {
     return (
 
         <Container>
-            <Segment>
                 <Dimmer className={dataResult.loading ? 'active inverted' : ''}>
                     <Loader>Loading</Loader>
                 </Dimmer>
                 {renderList()}
-            </Segment>
         </Container>
     );
 }

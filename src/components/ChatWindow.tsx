@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Segment, Form, List } from 'semantic-ui-react';
+import { Segment, Form, List, Container } from 'semantic-ui-react';
 import { listenForChatChange, writeChatData } from '../api';
 import firebase from 'firebase';
 import ChatListItem from './ChatListItem';
@@ -7,13 +7,13 @@ import { ChatDataResult, Chat } from './interface';
 
 interface ChatWindowProps {
     data: string;
-    uid: string ;
+    uid: string;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
     const initialState: ChatDataResult = {
         loading: false,
-        data:[]
+        data: []
     }
     const [chatData, setChatData] = useState(initialState);
     const [input, setInput] = useState('');
@@ -29,7 +29,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
         const chat: Chat = {
             message: input,
             senderId: uid,
-            receiverId:data,
+            receiverId: data,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }
         writeChatData(chat);
@@ -38,10 +38,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
 
     //listenForChatChange(data, chatData, setChatData);
 
-    return <Segment>
-        <List>
-            {chatData.data.map((item)=><ChatListItem key={item.id} uid={uid} data={item} />)}
-        </List>
+    return <>
+        <Segment>
+            <List>
+                {chatData.data.map((item) => <ChatListItem key={item.id} uid={uid} data={item} />)}
+            </List>
+        </Segment>
         <Form>
             <Form.Group>
                 <Form.Input onChange={(e) => setInput(e.target.value)}
@@ -49,7 +51,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
                 <Form.Button primary onClick={onSendButtonClicked} width={2} >Send</Form.Button>
             </Form.Group>
         </Form>
-    </Segment>
+    </>
 }
 
 export default ChatWindow;

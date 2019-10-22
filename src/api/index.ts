@@ -147,7 +147,7 @@ export const listenForChatChange = (senderId: string, receiverId:string, dataRes
     setDataResult({ ...dataResult });
     const node = getConcatenatedNode(senderId, receiverId);
     const unsub = app.firestore().collection('chat')
-        .doc(node).collection('/chat').onSnapshot(dataSnapshot => {
+        .doc(node).collection('/chat').orderBy('timestamp').onSnapshot(dataSnapshot => {
             console.log('chat changed');
             
             dataResult.loading = false;
