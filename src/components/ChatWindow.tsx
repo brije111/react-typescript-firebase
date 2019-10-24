@@ -4,6 +4,7 @@ import { listenForChatChange, writeChatData } from '../api';
 import firebase from 'firebase';
 import ChatListItem from './ChatListItem';
 import { ChatDataResult, Chat } from './interface';
+import './ChatWindow.css';
 
 import styled from 'styled-components';
 
@@ -45,20 +46,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
 
     //listenForChatChange(data, chatData, setChatData);
 
-    return <>
-        <Segment>
+    return <div className='container'>
+        <Segment className='list'>
             <List>
                 {chatData.data.map((item) => <ChatListItem key={item.id} uid={uid} data={item} />)}
             </List>
         </Segment>
-        <Form>
-            <FormGroupStyle>
+        <Form className='input'>
+            <Form.Group>
                 <Form.Input onChange={(e) => setInput(e.target.value)}
                     value={input} placeholder='Type Message Here...' width={14} />
                 <Form.Button primary onClick={onSendButtonClicked} width={2} >Send</Form.Button>
-            </FormGroupStyle>
+            </Form.Group>
         </Form>
-    </>
+    </div>
 }
 
 export default ChatWindow;
