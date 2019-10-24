@@ -5,6 +5,13 @@ import firebase from 'firebase';
 import ChatListItem from './ChatListItem';
 import { ChatDataResult, Chat } from './interface';
 
+import styled from 'styled-components';
+
+const FormGroupStyle = styled(Form.Group)`
+direction:flex;
+
+`;
+
 interface ChatWindowProps {
     data: string;
     uid: string;
@@ -45,11 +52,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
             </List>
         </Segment>
         <Form>
-            <Form.Group>
+            <FormGroupStyle>
                 <Form.Input onChange={(e) => setInput(e.target.value)}
                     value={input} placeholder='Type Message Here...' width={14} />
                 <Form.Button primary onClick={onSendButtonClicked} width={2} >Send</Form.Button>
-            </Form.Group>
+            </FormGroupStyle>
         </Form>
     </>
 }
