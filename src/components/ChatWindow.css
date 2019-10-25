@@ -1,13 +1,13 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+
+ 
+}
+.list{
+    overflow: scroll;
+    max-height: 500px;
 }
 
-.list {
-    height: 80%;
-}
 
 .input {
-    height: 20%;
+    background-color: bisque;
 }

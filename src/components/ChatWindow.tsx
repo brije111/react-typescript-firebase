@@ -47,11 +47,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ data, uid }) => {
     //listenForChatChange(data, chatData, setChatData);
 
     return <div className='container'>
-        <Segment className='list'>
+        <div className='list'>
             <List>
                 {chatData.data.map((item) => <ChatListItem key={item.id} uid={uid} data={item} />)}
             </List>
-        </Segment>
+        </div>
         <Form className='input'>
             <Form.Group>
                 <Form.Input onChange={(e) => setInput(e.target.value)}
